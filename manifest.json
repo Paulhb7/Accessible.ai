@@ -1,0 +1,20 @@
+{
+    "manifest_version": 3,
+    "name": "Résumé Accessibilité (V1)",
+    "version": "0.1.0",
+    "description": "Raccourci clavier pour afficher 'Hello World' ou résumer la page et l'énoncer.",
+    "permissions": ["activeTab", "scripting"],
+    "background": { "service_worker": "sw.js" },
+    "commands": {
+      "show_hello": {
+        "suggested_key": { "default": "Alt+Shift+H" },
+        "description": "Afficher Hello World (test) ou le résumé de la page"
+      }
+    },
+    "content_scripts": [{
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }]
+  }
+  
