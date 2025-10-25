@@ -1,14 +1,14 @@
 {
     "manifest_version": 3,
-    "name": "Résumé Accessibilité (V1)",
+    "name": "Accessible",
     "version": "0.1.0",
-    "description": "Raccourci clavier pour afficher 'Hello World' ou résumer la page et l'énoncer.",
+    "description": "Chrome extension for web accessibility. Displays Hello World message with text-to-speech functionality.",
     "permissions": ["activeTab", "scripting"],
     "background": { "service_worker": "sw.js" },
     "commands": {
       "show_hello": {
         "suggested_key": { "default": "Alt+Shift+H" },
-        "description": "Afficher Hello World (test) ou le résumé de la page"
+        "description": "Display Hello World message with text-to-speech"
       }
     },
     "content_scripts": [{

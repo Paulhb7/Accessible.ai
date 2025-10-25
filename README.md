@@ -1,99 +1,109 @@
-# Eyes on Web - Extension Chrome d'Accessibilité
+# Accessible - Chrome Extension
 
-Une extension Chrome simple qui permet d'afficher un message "Hello World" et de le lire à voix haute via un raccourci clavier, conçue pour améliorer l'accessibilité web.
+A simple Chrome extension that displays a "Hello World" message and reads it aloud via keyboard shortcut. This is the foundation for future accessibility features.
 
-## Fonctionnalités
+## Current Features
 
-- **Raccourci clavier** : `Alt+Shift+H` pour déclencher l'action
-- **Affichage visuel** : Panneau flottant avec le message "Hello World"
-- **Synthèse vocale** : Lecture automatique du texte en français
-- **Interface accessible** : Compatible avec les lecteurs d'écran
-- **Contrôles intuitifs** : Boutons pour lire et fermer le panneau
+- **Keyboard shortcut** : `Alt+Shift+H` to trigger the action
+- **Visual display** : Floating panel with "Hello World" message
+- **Text-to-speech** : Automatic text reading in French
+- **Accessible interface** : Screen reader compatible
+- **Intuitive controls** : Buttons to read and close the panel
+
+## Planned Accessibility Features
+
+This extension is designed to be the foundation for comprehensive web accessibility tools. Future versions will include:
+
+- Page content summarization
+- Enhanced screen reader integration
+- Focus management assistance
+- Color contrast analysis
+- Navigation aids for users with disabilities
 
 ## Installation
 
-### Installation manuelle
+### Manual Installation
 
-1. Téléchargez ou clonez ce repository
-2. Ouvrez Chrome et allez dans `chrome://extensions/`
-3. Activez le "Mode développeur" (en haut à droite)
-4. Cliquez sur "Charger l'extension non empaquetée"
-5. Sélectionnez le dossier contenant les fichiers de l'extension
+1. Download or clone this repository
+2. Open Chrome and go to `chrome://extensions/`
+3. Enable "Developer mode" (top right)
+4. Click "Load unpacked extension"
+5. Select the folder containing the extension files
 
-### Structure des fichiers
+### File Structure
 
 ```
-eyes_on_web/
-├── manifest.json    # Configuration de l'extension
-├── content.js       # Script de contenu (interface utilisateur)
-├── sw.js           # Service Worker (gestion des raccourcis)
-└── README.md       # Ce fichier
+accessible/
+├── manifest.json    # Extension configuration
+├── content.js       # Content script (user interface)
+├── sw.js           # Service Worker (keyboard shortcuts)
+└── README.md       # This file
 ```
 
-## Utilisation
+## Usage
 
-1. Une fois l'extension installée, naviguez sur n'importe quelle page web
-2. Appuyez sur `Alt+Shift+H` pour déclencher l'action
-3. Un panneau "Hello World" apparaîtra en bas à droite de la page
-4. Le texte sera automatiquement lu à voix haute
-5. Utilisez les boutons "Lire" ou "Fermer" pour contrôler le panneau
-6. Appuyez sur `Échap` pour fermer le panneau et arrêter la lecture
+1. Once the extension is installed, navigate to any web page
+2. Press `Alt+Shift+H` to trigger the action
+3. A "Hello World" panel will appear in the bottom right of the page
+4. The text will be automatically read aloud
+5. Use the "Read" or "Close" buttons to control the panel
+6. Press `Escape` to close the panel and stop reading
 
-## Développement
+## Development
 
-### Permissions requises
+### Required Permissions
 
-- `activeTab` : Accès à l'onglet actif
-- `scripting` : Injection de scripts dans les pages
+- `activeTab` : Access to the active tab
+- `scripting` : Script injection into pages
 
 ### Architecture
 
-- **Service Worker** (`sw.js`) : Gère les raccourcis clavier et la communication avec les onglets
-- **Content Script** (`content.js`) : Crée l'interface utilisateur et gère la synthèse vocale
-- **Manifest V3** : Configuration moderne de l'extension
+- **Service Worker** (`sw.js`) : Manages keyboard shortcuts and communication with tabs
+- **Content Script** (`content.js`) : Creates user interface and handles text-to-speech
+- **Manifest V3** : Modern extension configuration
 
-## Personnalisation
+## Customization
 
-Pour modifier le message affiché, éditez la ligne 84 dans `content.js` :
+To modify the displayed message, edit line 84 in `content.js` :
 
 ```javascript
-el.querySelector("#pc-summary").textContent = "Votre message personnalisé";
+el.querySelector("#pc-summary").textContent = "Your custom message";
 ```
 
-Pour changer le raccourci clavier, modifiez le fichier `manifest.json` :
+To change the keyboard shortcut, modify the `manifest.json` file :
 
 ```json
 "commands": {
   "show_hello": {
     "suggested_key": { "default": "Ctrl+Shift+H" },
-    "description": "Votre description"
+    "description": "Your description"
   }
 }
 ```
 
-## Compatibilité
+## Compatibility
 
 - Chrome (Manifest V3)
-- Navigateurs basés sur Chromium (Edge, Brave, etc.)
-- Fonctionne sur toutes les pages web
+- Chromium-based browsers (Edge, Brave, etc.)
+- Works on all web pages
 
-## Contribution
+## Contributing
 
-Les contributions sont les bienvenues ! N'hésitez pas à :
+Contributions are welcome! Feel free to :
 
-1. Signaler des bugs
-2. Proposer de nouvelles fonctionnalités
-3. Améliorer l'accessibilité
-4. Optimiser les performances
+1. Report bugs
+2. Suggest new features
+3. Improve accessibility
+4. Optimize performance
 
-## Licence
+## License
 
-Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
+This project is licensed under the MIT License. See the `LICENSE` file for more details.
 
 ## Version
 
-Version actuelle : 0.1.0
+Current version : 0.1.0
 
 ---
 
-*Développé pour améliorer l'accessibilité web et faciliter l'interaction avec le contenu en ligne.*
+*Developed as a foundation for comprehensive web accessibility tools.*
