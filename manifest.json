@@ -2,24 +2,40 @@
     "manifest_version": 3,
     "name": "Accessible",
     "version": "0.1.0",
-    "description": "Chrome extension for web accessibility. Displays Hello World message with text-to-speech functionality.",
+    "description": "Chrome extension for web accessibility. For blind people and other people with disabilities.",
     "icons": {
         "16": "icons/icon16.png",
         "48": "icons/icon48.png",
         "128": "icons/icon128.png"
     },
-    "permissions": ["activeTab", "scripting"],
-    "background": { "service_worker": "sw.js" },
-    "commands": {
-      "show_hello": {
-        "suggested_key": { "default": "Alt+Shift+H" },
-        "description": "Display Hello World message with text-to-speech"
-      }
+    "permissions": ["activeTab", "scripting", "notifications"],
+    "background": { 
+        "service_worker": "sw.js" 
     },
-    "content_scripts": [{
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
-      "run_at": "document_idle"
-    }]
-  }
-  
+    "commands": {
+        "summarize_page": {
+            "suggested_key": {
+                "default": "Alt+Shift+H",
+                "mac": "Command+Shift+H"
+            },
+            "description": "Résumer automatiquement la page (pour les aveugles)"
+        },
+        "voice_question_blind": {
+            "suggested_key": {
+                "default": "Alt+Shift+Q",
+                "mac": "Command+Shift+Q"
+            },
+            "description": "Poser une question orale à la page (pour les aveugles)"
+        },
+        "show_question_interface": {
+            "suggested_key": {
+                "default": "Alt+Shift+A",
+                "mac": "Command+Shift+A"
+            },
+            "description": "Ouvrir l'interface de question sur le contenu de la page (pour dyslexiques/TDAH)"
+        }
+    },
+    "host_permissions": [
+        "<all_urls>"
+    ]
+} 
