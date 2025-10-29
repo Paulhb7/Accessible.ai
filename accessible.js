@@ -4,10 +4,39 @@
     
     // Éviter les exécutions multiples simultanées
     if (window.__accessibleExtensionRunning) {
-      console.log("Interface déjà ouverte");
+      console.log("Interface already open");
       return;
     }
     window.__accessibleExtensionRunning = true;
+    
+    // Fonction pour créer un overlay avec flou et voile blanc
+    function createOverlay() {
+      let overlay = document.getElementById("accessible-overlay");
+      if (overlay) return overlay;
+      
+      overlay = document.createElement("div");
+      overlay.id = "accessible-overlay";
+      Object.assign(overlay.style, {
+        position: "fixed",
+        top: "0",
+        left: "0",
+        width: "100%",
+        height: "100%",
+        backgroundColor: "rgba(255, 255, 255, 0.5)",
+        backdropFilter: "blur(4px)",
+        WebkitBackdropFilter: "blur(4px)", // Pour Safari
+        zIndex: 2147483646, // Juste en dessous des interfaces
+        pointerEvents: "none"
+      });
+      
+      document.body.appendChild(overlay);
+      return overlay;
+    }
+    
+    function removeOverlay() {
+      const overlay = document.getElementById("accessible-overlay");
+      if (overlay) overlay.remove();
+    }
     
     // Fonctions pour gérer le spinner
     function showSpinner() {
@@ -17,19 +46,20 @@
       spinner = document.createElement("div");
       spinner.id = "lm-spinner";
       spinner.setAttribute("role", "status");
-      spinner.setAttribute("aria-label", "Traitement en cours");
+      spinner.setAttribute("aria-label", "Processing");
       Object.assign(spinner.style, {
         position: "fixed",
         top: "50%",
         left: "50%",
         transform: "translate(-50%, -50%)",
         zIndex: 2147483647,
-        background: "#111",
-        color: "#fff",
+        background: "linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%)",
+        color: "#1E3A5F",
         padding: "20px 30px",
         borderRadius: "12px",
-        boxShadow: "0 8px 32px rgba(0,0,0,.4)",
-        fontFamily: "system-ui, sans-serif",
+        border: "2px solid rgba(30, 58, 95, 0.3)",
+        boxShadow: "0 8px 32px rgba(91, 155, 213, 0.3)",
+        fontFamily: "Arial, Helvetica, sans-serif",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -37,14 +67,21 @@
       });
       
       spinner.innerHTML = `
-        <div style="width: 40px; height: 40px; border: 3px solid rgba(255,255,255,.2); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
-        <div style="font-size: 14px">Traitement en cours...</div>
+        <div style="margin-bottom:8px;text-align:center">
+          <div style="font-size:20px;font-weight:600;color:#1E3A5F;margin-bottom:4px">Accessible 🧠🌍</div>
+          <div style="font-size:11px;color:#4A90E2;font-style:italic">Making the web inclusive and accessible with ai agents</div>
+        </div>
+        <div style="width: 40px; height: 40px; border: 3px solid rgba(75, 144, 226, 0.2); border-top-color: #4A90E2; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+        <div style="font-size: 14px; color: #1E3A5F">Processing...</div>
       `;
       
       // Ajouter l'animation
       const style = document.createElement("style");
       style.textContent = `@keyframes spin { to { transform: rotate(360deg); } }`;
       document.head.appendChild(style);
+      
+      // Ajouter l'overlay avec flou
+      createOverlay();
       
       document.body.appendChild(spinner);
       return spinner;
@@ -53,6 +90,13 @@
     function hideSpinner() {
       const spinner = document.getElementById("lm-spinner");
       if (spinner) spinner.remove();
+      // Retirer l'overlay seulement si aucune autre interface n'est ouverte
+      const hasOtherInterface = document.getElementById("question-dialog") || 
+                                 document.getElementById("answer-dialog") ||
+                                 document.getElementById("question-confirmation-dialog");
+      if (!hasOtherInterface) {
+        removeOverlay();
+      }
     }
     
     // Fonction pour le text-to-speech
@@ -65,15 +109,15 @@
         utterance.pitch = 1.0;
         speechSynthesis.speak(utterance);
       } catch (e) {
-        console.warn("TTS indisponible:", e);
-        alert("La lecture vocale n'est pas disponible sur votre navigateur.");
+        console.warn("TTS unavailable:", e);
+        alert("Text-to-speech is not available in your browser.");
       }
     }
     
     // Fonction pour le speech-to-text
     function startSpeechRecognition(callback) {
       if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        alert("La reconnaissance vocale n'est pas disponible sur votre navigateur.");
+        alert("Speech recognition is not available in your browser.");
         window.__accessibleExtensionRunning = false;
         return;
       }
@@ -86,7 +130,7 @@
       // Même configuration pour tous les modes
       
       recognition.onstart = () => {
-        console.log("🎤 Écoute en cours...");
+        console.log("🎤 Listening...");
       };
       
       recognition.onresult = (event) => {
@@ -96,8 +140,8 @@
       };
       
       recognition.onerror = (event) => {
-        console.error("❌ Erreur de reconnaissance:", event.error);
-        alert("Erreur de reconnaissance vocale: " + event.error);
+        console.error("❌ Recognition error:", event.error);
+        alert("Speech recognition error: " + event.error);
         hideSpinner();
         // Réinitialiser le flag si on est en mode voice_question
         if (window.__accessibleMode === "voice_question") {
@@ -106,7 +150,7 @@
       };
       
       recognition.onend = () => {
-        console.log("🎤 Reconnaissance terminée");
+        console.log("🎤 Recognition completed");
       };
       
       recognition.start();
@@ -117,35 +161,44 @@
       return new Promise((resolve) => {
         const questionDiv = document.createElement("div");
         questionDiv.setAttribute("role", "dialog");
-        questionDiv.setAttribute("aria-label", "Poser une question");
+        questionDiv.setAttribute("aria-label", "Ask a question");
+        questionDiv.id = "question-dialog";
         Object.assign(questionDiv.style, {
           position: "fixed",
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
           zIndex: 2147483647,
-          background: "#111",
-          color: "#fff",
+          background: "linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%)",
+          color: "#1E3A5F",
           padding: "24px",
           borderRadius: "12px",
-          boxShadow: "0 8px 32px rgba(0,0,0,.4)",
-          fontFamily: "system-ui, sans-serif",
+          border: "2px solid rgba(30, 58, 95, 0.3)",
+          boxShadow: "0 8px 32px rgba(91, 155, 213, 0.3)",
+          fontFamily: "Arial, Helvetica, sans-serif",
           minWidth: "400px"
         });
         
         questionDiv.innerHTML = `
-          <h3 style="margin:0 0 16px;font-size:18px">Comment souhaitez-vous poser votre question ?</h3>
-          <input id="question-input" type="text" placeholder="Tapez votre question ici..." 
-            style="width:100%;padding:10px;margin-bottom:12px;border:none;border-radius:6px;font-size:14px;background:#222;color:#fff" />
+          <div style="margin-bottom:16px;text-align:center;border-bottom:1px solid rgba(74, 144, 226, 0.2);padding-bottom:12px">
+            <div style="font-size:22px;font-weight:600;color:#1E3A5F;margin-bottom:4px">Accessible 🧠🌍</div>
+            <div style="font-size:11px;color:#4A90E2;font-style:italic">Making the web inclusive and accessible with ai agents</div>
+          </div>
+          <div style="margin:0 0 16px;font-size:18px;color:#1E3A5F;font-weight:600">How would you like to ask your question?</div>
+          <input id="question-input" type="text" placeholder="Type your question here..." 
+            style="width:100%;padding:10px;margin-bottom:12px;border:1px solid #90C4E8;border-radius:6px;font-size:14px;background:#FFFFFF;color:#1E3A5F;font-family:Arial, Helvetica, sans-serif" />
           <div style="display:flex;gap:8px;justify-content:flex-end">
-            <button id="question-voice" style="padding:10px 16px;background:#2196F3;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px">
-              🎤 Question orale
+            <button id="question-voice" style="padding:10px 16px;background:#4A90E2;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px;font-family:Arial, Helvetica, sans-serif;transition:background 0.2s">
+              🎤 Voice Question
             </button>
-            <button id="question-text" style="padding:10px 16px;background:#4CAF50;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px">
-              ✏️ Envoyer
+            <button id="question-text" style="padding:10px 16px;background:#5B9BD5;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px;font-family:Arial, Helvetica, sans-serif;transition:background 0.2s">
+              ✏️ Send
             </button>
           </div>
         `;
+        
+        // Ajouter l'overlay avec flou
+        createOverlay();
         
         document.body.appendChild(questionDiv);
         
@@ -157,6 +210,7 @@
           const question = input.value.trim();
           if (question) {
             questionDiv.remove();
+            removeOverlay();
             resolve(question);
           }
         });
@@ -165,6 +219,7 @@
         input.addEventListener("keypress", (e) => {
           if (e.key === "Enter" && input.value.trim()) {
             questionDiv.remove();
+            removeOverlay();
             resolve(input.value.trim());
           }
         });
@@ -183,6 +238,7 @@
         const handleEscape = (e) => {
           if (e.key === "Escape" && questionDiv.isConnected) {
             questionDiv.remove();
+            removeOverlay();
             document.removeEventListener("keydown", handleEscape);
             window.__accessibleExtensionRunning = false;
             resolve(null); // Résoudre avec null pour indiquer l'annulation
@@ -197,30 +253,39 @@
       return new Promise((resolve) => {
         const questionDiv = document.createElement("div");
         questionDiv.setAttribute("role", "dialog");
-        questionDiv.setAttribute("aria-label", "Question dictée");
+        questionDiv.setAttribute("aria-label", "Dictated question");
+        questionDiv.id = "question-confirmation-dialog";
         Object.assign(questionDiv.style, {
           position: "fixed",
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
           zIndex: 2147483647,
-          background: "#111",
-          color: "#fff",
+          background: "linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%)",
+          color: "#1E3A5F",
           padding: "24px",
           borderRadius: "12px",
-          boxShadow: "0 8px 32px rgba(0,0,0,.4)",
-          fontFamily: "system-ui, sans-serif",
+          border: "2px solid rgba(30, 58, 95, 0.3)",
+          boxShadow: "0 8px 32px rgba(91, 155, 213, 0.3)",
+          fontFamily: "Arial, Helvetica, sans-serif",
           minWidth: "400px",
           maxWidth: "600px"
         });
         
         questionDiv.innerHTML = `
-          <h3 style="margin:0 0 16px;font-size:18px">Question dictée</h3>
-          <div id="question-display" style="padding:12px;margin-bottom:16px;border-radius:6px;background:#222;color:#fff;min-height:60px;white-space:pre-wrap;line-height:1.5">${question}</div>
+          <div style="margin-bottom:16px;text-align:center;border-bottom:1px solid rgba(74, 144, 226, 0.2);padding-bottom:12px">
+            <div style="font-size:22px;font-weight:600;color:#1E3A5F;margin-bottom:4px">Accessible 🧠🌍</div>
+            <div style="font-size:11px;color:#4A90E2;font-style:italic">Making the web inclusive and accessible with ai agents</div>
+          </div>
+          <div style="margin:0 0 16px;font-size:18px;color:#1E3A5F;font-weight:600">Dictated Question</div>
+          <div id="question-display" style="padding:12px;margin-bottom:16px;border-radius:6px;background:#FFFFFF;border:1px solid #90C4E8;color:#1E3A5F;min-height:60px;white-space:pre-wrap;line-height:1.5;font-family:Arial, Helvetica, sans-serif">${question}</div>
           <div style="display:flex;gap:8px;justify-content:center;align-items:center">
-            <div style="font-size:14px;color:#4CAF50">Envoi en cours...</div>
+            <div style="font-size:14px;color:#4A90E2;font-family:Arial, Helvetica, sans-serif">Sending...</div>
           </div>
         `;
+        
+        // Ajouter l'overlay avec flou
+        createOverlay();
         
         document.body.appendChild(questionDiv);
         
@@ -234,13 +299,14 @@
           
           // Retirer l'interface après l'envoi
           questionDiv.remove();
+          removeOverlay();
           resolve(question);
         }, 100);
       });
     }
 
-    // Fonction pour afficher une réponse (utilisée pour le résumé et les questions)
-    function showAnswer(answer, title = "Réponse") {
+    // Function to display an answer (used for summary and questions)
+    function showAnswer(answer, title = "Answer") {
       hideSpinner();
       console.log("✅ " + title + ":\n\n" + answer);
       
@@ -248,32 +314,44 @@
       const answerDiv = document.createElement("div");
       answerDiv.setAttribute("role", "dialog");
       answerDiv.setAttribute("aria-label", title);
+      answerDiv.id = "answer-dialog";
       Object.assign(answerDiv.style, {
         position: "fixed",
         top: "50%",
         left: "50%",
         transform: "translate(-50%, -50%)",
         zIndex: 2147483647,
-        background: "#111",
-        color: "#fff",
+        background: "linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%)",
+        color: "#1E3A5F",
         padding: "20px",
         borderRadius: "12px",
-        boxShadow: "0 8px 32px rgba(0,0,0,.4)",
-        fontFamily: "system-ui, sans-serif",
+        border: "2px solid rgba(30, 58, 95, 0.3)",
+        boxShadow: "0 8px 32px rgba(91, 155, 213, 0.3)",
+        fontFamily: "Arial, Helvetica, sans-serif",
         maxWidth: "600px",
         maxHeight: "70vh",
         overflow: "auto",
         lineHeight: "1.6"
       });
       
+      // Title is already in English
+      const englishTitle = title;
+      
       answerDiv.innerHTML = `
-        <h3 style="margin:0 0 12px;font-size:18px">${title}</h3>
-        <div id="answer-content" style="white-space:pre-wrap;margin-bottom:12px">${answer}</div>
+        <div style="margin-bottom:16px;text-align:center;border-bottom:1px solid rgba(74, 144, 226, 0.2);padding-bottom:12px">
+          <div style="font-size:22px;font-weight:600;color:#1E3A5F;margin-bottom:4px">Accessible 🧠🌍</div>
+          <div style="font-size:11px;color:#4A90E2;font-style:italic">Making the web inclusive and accessible with ai agents</div>
+        </div>
+        <div style="margin:0 0 12px;font-size:18px;color:#1E3A5F;font-weight:600">${englishTitle}</div>
+        <div id="answer-content" style="white-space:pre-wrap;margin-bottom:12px;color:#1E3A5F;font-family:Arial, Helvetica, sans-serif;background:#FFFFFF;padding:12px;border-radius:6px;border:1px solid #90C4E8">${answer}</div>
         <div style="display:flex;gap:8px;justify-content:flex-end">
-          <button id="answer-read" style="padding:8px 16px;background:#4CAF50;color:#fff;border:none;border-radius:6px;cursor:pointer">🔊 Lire</button>
-          <button id="answer-close" style="padding:8px 16px;background:#333;color:#fff;border:none;border-radius:6px;cursor:pointer">Fermer</button>
+          <button id="answer-read" style="padding:8px 16px;background:#4A90E2;color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:Arial, Helvetica, sans-serif;transition:background 0.2s">🔊 Read</button>
+          <button id="answer-close" style="padding:8px 16px;background:#6BA3D6;color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:Arial, Helvetica, sans-serif;transition:background 0.2s">Close</button>
         </div>
       `;
+      
+      // Ajouter l'overlay avec flou
+      createOverlay();
       
       document.body.appendChild(answerDiv);
       
@@ -287,6 +365,7 @@
       answerDiv.querySelector("#answer-close").addEventListener("click", () => {
         speechSynthesis.cancel(); // Arrêter la lecture si elle est en cours
         answerDiv.remove();
+        removeOverlay();
         window.__accessibleExtensionRunning = false;
       });
       
@@ -295,15 +374,16 @@
         if (e.key === "Escape" && answerDiv.isConnected) {
           speechSynthesis.cancel(); // Arrêter la lecture si elle est en cours
           answerDiv.remove();
+          removeOverlay();
           document.removeEventListener("keydown", handleEscape);
           window.__accessibleExtensionRunning = false;
         }
       };
       document.addEventListener("keydown", handleEscape);
       
-      // Lecture automatique pour les aveugles (mode summarize)
+      // Lecture automatique pour les aveugles (mode summarize et voice_question)
       // Attendre un peu que la boîte soit rendue avant de lire
-      if (mode === "summarize") {
+      if (mode === "summarize" || mode === "voice_question") {
         setTimeout(() => {
           const answerText = answerDiv.querySelector("#answer-content").textContent;
           speak(answerText);
@@ -312,7 +392,7 @@
     }
 
     // Fonction pour traiter avec l'API LanguageModel
-    async function processWithLanguageModel(content, prompt, title = "Réponse") {
+    async function processWithLanguageModel(content, prompt, title = "Answer") {
       // ⚠️ Langues supportées par la Prompt API (aujourd'hui) :
       const expectedInputs  = [{ type: "text", languages: ["en"] }]; // pas "fr" ici
       const expectedOutputs = [{ type: "text", languages: ["en"] }]; // sortie en anglais
@@ -325,8 +405,8 @@
       console.log("availability():", availability);
       if (availability === "unavailable") {
         hideSpinner();
-        console.error("🚫 Modèle indisponible (vérifie RAM/espace disque/Chrome 138+).");
-        alert("🚫 Modèle indisponible (vérifie RAM/espace disque/Chrome 138+).");
+        console.error("🚫 Model unavailable (check RAM/disk space/Chrome 138+).");
+        alert("🚫 Model unavailable (check RAM/disk space/Chrome 138+).");
         window.__accessibleExtensionRunning = false;
         return;
       }
@@ -337,27 +417,27 @@
         expectedOutputs,
         monitor(m) {
           m.addEventListener("downloadprogress", (e) => {
-            console.log(`⬇️ Téléchargement du modèle : ${(e.loaded * 100).toFixed(1)}%`);
+            console.log(`⬇️ Model download: ${(e.loaded * 100).toFixed(1)}%`);
           });
         },
       });
 
-      console.log("💡 Réponse en cours…");
+      console.log("💡 Processing response...");
       try {
         const answer = await session.prompt(prompt);
         showAnswer(answer, title);
-      } catch (error) {
-        hideSpinner();
-        console.error("❌ Erreur lors du traitement:", error);
-        alert("❌ Erreur lors du traitement: " + error.message);
+    } catch (error) {
+      hideSpinner();
+      console.error("❌ Error during processing:", error);
+      alert("❌ Error during processing: " + error.message);
         window.__accessibleExtensionRunning = false;
       }
     }
 
     // 1) Détection de l'API
     if (!('LanguageModel' in self)) {
-      console.error("❌ Prompt API non disponible (Chrome 138+ requis, desktop).");
-      alert("❌ Prompt API non disponible (Chrome 138+ requis, desktop).");
+      console.error("❌ Prompt API not available (Chrome 138+ required, desktop).");
+      alert("❌ Prompt API not available (Chrome 138+ required, desktop).");
       window.__accessibleExtensionRunning = false;
       return;
     }
@@ -366,8 +446,8 @@
     const selected = (window.getSelection && window.getSelection().toString()) || "";
     const pageText = selected.trim() || document.body.innerText || "";
     if (!pageText) {
-      console.warn("ℹ️ Aucun texte détecté sur cette page.");
-      alert("ℹ️ Aucun texte détecté sur cette page.");
+      console.warn("ℹ️ No text detected on this page.");
+      alert("ℹ️ No text detected on this page.");
       window.__accessibleExtensionRunning = false;
       return;
     }
@@ -401,7 +481,7 @@ ${content}
 Provide a clear and structured summary of this page content.
       `.trim();
 
-      await processWithLanguageModel(content, promptText, "Résumé de la page");
+      await processWithLanguageModel(content, promptText, "Page Summary");
       // Nettoyer le mode après exécution
       window.__accessibleMode = undefined;
     } else if (mode === "voice_question") {
@@ -449,7 +529,7 @@ ${confirmedQuestion}
 Answer ONLY using the page content above.
         `.trim();
 
-        await processWithLanguageModel(content, promptText, "Réponse");
+        await processWithLanguageModel(content, promptText, "Answer");
         // Nettoyer le mode après exécution
         window.__accessibleMode = undefined;
       });
@@ -457,7 +537,7 @@ Answer ONLY using the page content above.
       // Mode interface de question (pour dyslexiques/TDAH)
       const question = await showQuestionInterface();
       if (!question) { 
-        console.log("Opération annulée."); 
+        console.log("Operation cancelled."); 
         window.__accessibleExtensionRunning = false;
         return; 
       }

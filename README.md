@@ -1,109 +1,141 @@
-# Accessible - Chrome Extension
+# Accessible 🧠🌍
 
-A simple Chrome extension that displays a "Hello World" message and reads it aloud via keyboard shortcut. This is the foundation for future accessibility features.
+**Making the web inclusive and accessible with AI agents**
 
-## Current Features
+A Chrome extension designed to make web content more accessible for people with visual impairments, dyslexia, and ADHD. This extension leverages Chrome's Language Model API to provide intelligent assistance through text-to-speech, speech-to-speech, and AI-powered content analysis.
 
-- **Keyboard shortcut** : `Alt+Shift+H` to trigger the action
-- **Visual display** : Floating panel with "Hello World" message
-- **Text-to-speech** : Automatic text reading in French
-- **Accessible interface** : Screen reader compatible
-- **Intuitive controls** : Buttons to read and close the panel
+## 🌟 Features
 
-## Planned Accessibility Features
+### For Visually Impaired Users
 
-This extension is designed to be the foundation for comprehensive web accessibility tools. Future versions will include:
+1. **Page Summary** (`Alt+Shift+H` / `Cmd+Shift+H` on Mac)
+   - Automatically generates a structured summary of the current page
+   - Reads the summary aloud automatically
+   - Perfect for quickly understanding page content without visual reading
 
-- Page content summarization
-- Enhanced screen reader integration
-- Focus management assistance
-- Color contrast analysis
-- Navigation aids for users with disabilities
+2. **Voice Question** (`Alt+Shift+Q` / `Cmd+Shift+Q` on Mac)
+   - Ask questions about the page content using voice
+   - Displays the transcribed question for confirmation
+   - Automatically sends the question and reads the AI response aloud
+   - Full hands-free interaction
 
-## Installation
+### For Users with Dyslexia/ADHD
 
-### Manual Installation
+3. **Question Interface** (`Alt+Shift+A` / `Cmd+Shift+A` on Mac)
+   - Interactive interface to ask questions about page content
+   - Supports both text input and voice input
+   - Clear, readable interface with soft blue theme
+   - Get answers based only on the current page content
 
-1. Download or clone this repository
-2. Open Chrome and go to `chrome://extensions/`
-3. Enable "Developer mode" (top right)
-4. Click "Load unpacked extension"
+## 🎨 Design
+
+- **Soft blue gradient theme** - Gentle on the eyes, promoting focus
+- **Smooth blur effect** - Background blur when interfaces are open
+- **Clean typography** - Simple, readable Arial font
+- **Accessible UI** - High contrast, clear buttons, keyboard navigation
+
+## 🚀 Installation
+
+### Prerequisites
+
+- **Chrome 138+** (required for Language Model API)
+- Desktop version (Mobile Chrome doesn't support the Language Model API)
+- Sufficient RAM and disk space for the AI model
+
+### Steps
+
+1. Clone or download this repository
+2. Open Chrome and navigate to `chrome://extensions/`
+3. Enable **Developer mode** (toggle in the top right)
+4. Click **Load unpacked**
 5. Select the folder containing the extension files
+6. The extension is now installed and ready to use!
 
-### File Structure
+## ⌨️ Keyboard Shortcuts
 
-```
-accessible/
-├── manifest.json    # Extension configuration
-├── content.js       # Content script (user interface)
-├── sw.js           # Service Worker (keyboard shortcuts)
-└── README.md       # This file
-```
+| Shortcut | Description |
+|----------|-------------|
+| `Alt+Shift+H` (Windows/Linux)<br>`Cmd+Shift+H` (Mac) | Summarize the current page (for visually impaired users) |
+| `Alt+Shift+Q` (Windows/Linux)<br>`Cmd+Shift+Q` (Mac) | Ask a voice question about the page (for visually impaired users) |
+| `Alt+Shift+A` (Windows/Linux)<br>`Cmd+Shift+A` (Mac) | Open question interface (for users with dyslexia/ADHD) |
+| `Esc` | Close any open interface |
 
-## Usage
+## 🎯 How It Works
 
-1. Once the extension is installed, navigate to any web page
-2. Press `Alt+Shift+H` to trigger the action
-3. A "Hello World" panel will appear in the bottom right of the page
-4. The text will be automatically read aloud
-5. Use the "Read" or "Close" buttons to control the panel
-6. Press `Escape` to close the panel and stop reading
+1. **Content Extraction**: The extension extracts text from the current page (or selected text if available)
+2. **AI Processing**: Uses Chrome's built-in Language Model API to analyze and respond
+3. **Accessibility Features**:
+   - Text-to-speech for responses
+   - Speech-to-text for voice questions
+   - Visual confirmation of transcribed text
+   - Automatic audio feedback
 
-## Development
+## 📋 Requirements
 
-### Required Permissions
+- **Chrome 138+** - Required for Language Model API support
+- **Desktop Chrome** - Mobile versions don't support this API
+- **Internet connection** - For initial model download (if needed)
+- **Permissions**:
+  - `activeTab` - To read page content
+  - `scripting` - To inject content scripts
+  - `notifications` - For error messages
 
-- `activeTab` : Access to the active tab
-- `scripting` : Script injection into pages
+## 🔒 Privacy & Security
 
-### Architecture
+- All processing happens **locally** using Chrome's built-in Language Model API
+- **No data is sent to external servers**
+- Page content is processed only in your browser
+- The extension only accesses pages you explicitly interact with
 
-- **Service Worker** (`sw.js`) : Manages keyboard shortcuts and communication with tabs
-- **Content Script** (`content.js`) : Creates user interface and handles text-to-speech
-- **Manifest V3** : Modern extension configuration
+## 🐛 Troubleshooting
 
-## Customization
+### Extension doesn't work?
 
-To modify the displayed message, edit line 84 in `content.js` :
+1. **Check Chrome version**: Ensure you have Chrome 138 or higher
+   - Go to `chrome://version/` to check
 
-```javascript
-el.querySelector("#pc-summary").textContent = "Your custom message";
-```
+2. **Verify installation**: Check that the extension is enabled in `chrome://extensions/`
 
-To change the keyboard shortcut, modify the `manifest.json` file :
+3. **Check page compatibility**: The extension doesn't work on Chrome system pages (`chrome://`, `about:`, etc.)
+   - Navigate to a regular webpage (http:// or https://)
 
-```json
-"commands": {
-  "show_hello": {
-    "suggested_key": { "default": "Ctrl+Shift+H" },
-    "description": "Your description"
-  }
-}
-```
+4. **Model availability**: If you see "Model unavailable", try:
+   - Restarting Chrome
+   - Ensuring sufficient disk space and RAM
+   - Waiting a moment and trying again (model may be downloading)
 
-## Compatibility
+### Speech recognition not working?
 
-- Chrome (Manifest V3)
-- Chromium-based browsers (Edge, Brave, etc.)
-- Works on all web pages
+- Ensure your microphone permissions are granted
+- Check that your browser supports Web Speech API
+- Try refreshing the page and trying again
 
-## Contributing
+### Text-to-speech not working?
 
-Contributions are welcome! Feel free to :
+- Check your browser's speech synthesis settings
+- Ensure system volume is up
+- Try using the "Read" button instead of automatic reading
 
-1. Report bugs
-2. Suggest new features
-3. Improve accessibility
-4. Optimize performance
+## 📝 Notes
 
-## License
+- The Language Model API is currently **experimental** and may vary in availability
+- First use may require downloading the model (progress shown in console)
+- The extension works best with text-heavy pages
+- Selected text takes priority over full page content
 
-This project is licensed under the MIT License. See the `LICENSE` file for more details.
+## 🤝 Contributing
 
-## Version
+This extension is designed with accessibility in mind. If you have suggestions for improvements, especially regarding accessibility features, please feel free to contribute!
 
-Current version : 0.1.0
+## 📄 License
+
+This project is created for accessibility purposes. Use and modify as needed to help make the web more accessible.
+
+## 🙏 Credits
+
+Built with Chrome's Language Model API, Web Speech API, and a focus on inclusive design.
 
 ---
 
-*Developed as a foundation for comprehensive web accessibility tools.*
+**Accessible 🧠🌍 - Making the web inclusive and accessible with AI agents**
+
