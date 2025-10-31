@@ -176,7 +176,8 @@
           border: "2px solid rgba(30, 58, 95, 0.3)",
           boxShadow: "0 8px 32px rgba(91, 155, 213, 0.3)",
           fontFamily: "Arial, Helvetica, sans-serif",
-          minWidth: "400px"
+          minWidth: "550px",
+          maxWidth: "800px"
         });
         
         questionDiv.innerHTML = `
@@ -268,8 +269,8 @@
           border: "2px solid rgba(30, 58, 95, 0.3)",
           boxShadow: "0 8px 32px rgba(91, 155, 213, 0.3)",
           fontFamily: "Arial, Helvetica, sans-serif",
-          minWidth: "400px",
-          maxWidth: "600px"
+          minWidth: "550px",
+          maxWidth: "800px"
         });
         
         questionDiv.innerHTML = `
@@ -328,7 +329,8 @@
         border: "2px solid rgba(30, 58, 95, 0.3)",
         boxShadow: "0 8px 32px rgba(91, 155, 213, 0.3)",
         fontFamily: "Arial, Helvetica, sans-serif",
-        maxWidth: "600px",
+        minWidth: "550px",
+        maxWidth: "800px",
         maxHeight: "70vh",
         overflow: "auto",
         lineHeight: "1.6"
@@ -465,9 +467,9 @@
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       const systemInstr = `
-Tu es un assistant qui résume le contenu fourni de manière concise et claire.
-Crée un résumé structuré qui capture les points principaux.
-Réponds en anglais (output language).
+You are an assistant that summarizes the provided content in a concise and clear manner.
+Create a structured summary that captures the main points.
+IMPORTANT: Do not use markdown formatting in your response. Respond only with plain text, without using markdown symbols (**, *, #, etc.).
       `.trim();
 
       const promptText = `
@@ -509,10 +511,10 @@ Provide a clear and structured summary of this page content.
         const confirmedQuestion = await showQuestionAndAutoSend(question);
         
         const systemInstr = `
-Tu es un assistant qui répond STRICTEMENT à partir du contenu fourni.
-Si l'information n'est pas présente, réponds "I don't know from this page."
-Cite 1–2 courtes citations entre " … " quand c'est possible.
-Réponds en anglais (output language).
+You are an assistant that responds STRICTLY from the provided content.
+If the information is not present, respond "I don't know from this page."
+When citing, use the format 'here is a quote from the page' instead of quotation marks. Include 1-2 short citations when possible.
+IMPORTANT: Do not use markdown formatting in your response. Respond only with plain text, without using markdown symbols (**, *, #, etc.).
         `.trim();
 
         const promptText = `
@@ -543,10 +545,10 @@ Answer ONLY using the page content above.
       }
 
       const systemInstr = `
-Tu es un assistant qui répond STRICTEMENT à partir du contenu fourni.
-Si l'information n'est pas présente, réponds "I don't know from this page."
-Cite 1–2 courtes citations entre " … " quand c'est possible.
-Réponds en anglais (output language).
+You are an assistant that responds STRICTLY from the provided content.
+If the information is not present, respond "I don't know from this page."
+When citing, use the format 'here is a quote from the page' instead of quotation marks. Include 1-2 short citations when possible.
+IMPORTANT: Do not use markdown formatting in your response. Respond only with plain text, without using markdown symbols (**, *, #, etc.).
       `.trim();
 
       const promptText = `
