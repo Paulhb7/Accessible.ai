@@ -426,10 +426,101 @@
 
       console.log("💡 Processing response...");
       try {
-        const answer = await session.prompt(prompt);
-        showAnswer(answer, title);
+        // Use streaming for better UX - results appear progressively
+        const stream = session.promptStreaming(prompt);
+        let fullAnswer = "";
+        
+        // Hide spinner once first chunk arrives
+        let spinnerHidden = false;
+        
+        // Create answer dialog early to show streaming results
+        hideSpinner();
+        spinnerHidden = true;
+        
+        const answerDiv = document.createElement("div");
+        answerDiv.setAttribute("role", "dialog");
+        answerDiv.setAttribute("aria-label", title);
+        answerDiv.id = "answer-dialog";
+        Object.assign(answerDiv.style, {
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          zIndex: 2147483647,
+          background: "linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%)",
+          color: "#1E3A5F",
+          padding: "20px",
+          borderRadius: "12px",
+          border: "2px solid rgba(30, 58, 95, 0.3)",
+          boxShadow: "0 8px 32px rgba(91, 155, 213, 0.3)",
+          fontFamily: "Arial, Helvetica, sans-serif",
+          minWidth: "550px",
+          maxWidth: "800px",
+          maxHeight: "70vh",
+          overflow: "auto",
+          lineHeight: "1.6"
+        });
+        
+        const englishTitle = title;
+        answerDiv.innerHTML = `
+          <div style="margin-bottom:16px;text-align:center;border-bottom:1px solid rgba(74, 144, 226, 0.2);padding-bottom:12px">
+            <div style="font-size:22px;font-weight:600;color:#1E3A5F;margin-bottom:4px">Accessible 🧠🌍</div>
+            <div style="font-size:11px;color:#4A90E2;font-style:italic">Making the web inclusive and accessible with ai agents</div>
+          </div>
+          <div style="margin:0 0 12px;font-size:18px;color:#1E3A5F;font-weight:600">${englishTitle}</div>
+          <div id="answer-content" style="white-space:pre-wrap;margin-bottom:12px;color:#1E3A5F;font-family:Arial, Helvetica, sans-serif;background:#FFFFFF;padding:12px;border-radius:6px;border:1px solid #90C4E8"></div>
+          <div style="display:flex;gap:8px;justify-content:flex-end">
+            <button id="answer-read" style="padding:8px 16px;background:#4A90E2;color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:Arial, Helvetica, sans-serif;transition:background 0.2s">🔊 Read</button>
+            <button id="answer-close" style="padding:8px 16px;background:#6BA3D6;color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:Arial, Helvetica, sans-serif;transition:background 0.2s">Close</button>
+          </div>
+        `;
+        
+        createOverlay();
+        document.body.appendChild(answerDiv);
+        
+        const answerContent = answerDiv.querySelector("#answer-content");
+        
+        // Stream chunks and update UI progressively
+        for await (const chunk of stream) {
+          fullAnswer += chunk;
+          answerContent.textContent = fullAnswer;
+          // Auto-scroll to bottom as content appears
+          answerContent.scrollTop = answerContent.scrollHeight;
+        }
+        
+        // Setup event listeners after streaming completes
+        answerDiv.querySelector("#answer-read").addEventListener("click", () => {
+          speak(fullAnswer);
+        });
+        
+        answerDiv.querySelector("#answer-close").addEventListener("click", () => {
+          speechSynthesis.cancel();
+          answerDiv.remove();
+          removeOverlay();
+          window.__accessibleExtensionRunning = false;
+        });
+        
+        const handleEscape = (e) => {
+          if (e.key === "Escape" && answerDiv.isConnected) {
+            speechSynthesis.cancel();
+            answerDiv.remove();
+            removeOverlay();
+            document.removeEventListener("keydown", handleEscape);
+            window.__accessibleExtensionRunning = false;
+          }
+        };
+        document.addEventListener("keydown", handleEscape);
+        
+        // Automatic reading for blind users (summarize and voice_question modes)
+        if (mode === "summarize" || mode === "voice_question") {
+          setTimeout(() => {
+            speak(fullAnswer);
+          }, 100);
+        }
+        
+        console.log("✅ " + title + ":\n\n" + fullAnswer);
     } catch (error) {
-      hideSpinner();
+      if (!spinnerHidden) hideSpinner();
       console.error("❌ Error during processing:", error);
       alert("❌ Error during processing: " + error.message);
         window.__accessibleExtensionRunning = false;
