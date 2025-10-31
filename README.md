@@ -4,8 +4,9 @@
 
 **Making the web inclusive and accessible with multimodal GenAI**
 
-A Chrome extension designed to make web content more accessible for people with visual impairments, dyslexia, and ADHD. This extension leverages Chrome's Language Model API to provide intelligent assistance through text-to-speech, speech-to-speech, and AI-powered content analysis.
+**Accessible AI🧠🌍** is a **multimodal Chrome extension** that uses **Generative AI powered by Chrome’s built-in Gemini Nano model** to **make the web more inclusive and accessible** for people with **visual impairments, dyslexia, and ADHD**.
 
+It combines multiple interaction modes — **text**, **voice**, and **(soon) facial gestures** — to create a seamless and inclusive experience where users can **listen, speak, or express** themselves to understand and navigate the web.
 ## 🌟 Features
 
 ### For Visually Impaired Users
