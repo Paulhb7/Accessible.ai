@@ -1,15 +1,15 @@
 (async () => {
-    // Déterminer le mode d'exécution (défini par le service worker)
-    const mode = window.__accessibleMode || "question"; // "summarize" ou "question"
+    // Determine execution mode (set by service worker)
+    const mode = window.__accessibleMode || "question"; // "summarize" or "question"
     
-    // Éviter les exécutions multiples simultanées
+    // Prevent multiple simultaneous executions
     if (window.__accessibleExtensionRunning) {
       console.log("Interface already open");
       return;
     }
     window.__accessibleExtensionRunning = true;
     
-    // Fonction pour créer un overlay avec flou et voile blanc
+    // Function to create overlay with blur and white veil
     function createOverlay() {
       let overlay = document.getElementById("accessible-overlay");
       if (overlay) return overlay;
@@ -24,8 +24,8 @@
         height: "100%",
         backgroundColor: "rgba(255, 255, 255, 0.5)",
         backdropFilter: "blur(4px)",
-        WebkitBackdropFilter: "blur(4px)", // Pour Safari
-        zIndex: 2147483646, // Juste en dessous des interfaces
+        WebkitBackdropFilter: "blur(4px)", // For Safari
+        zIndex: 2147483646, // Just below the interfaces
         pointerEvents: "none"
       });
       
@@ -38,7 +38,7 @@
       if (overlay) overlay.remove();
     }
     
-    // Fonctions pour gérer le spinner
+    // Functions to manage the spinner
     function showSpinner() {
       let spinner = document.getElementById("lm-spinner");
       if (spinner) return spinner;
@@ -75,12 +75,12 @@
         <div style="font-size: 14px; color: #1E3A5F">Processing...</div>
       `;
       
-      // Ajouter l'animation
+      // Add the animation
       const style = document.createElement("style");
       style.textContent = `@keyframes spin { to { transform: rotate(360deg); } }`;
       document.head.appendChild(style);
       
-      // Ajouter l'overlay avec flou
+      // Add overlay with blur
       createOverlay();
       
       document.body.appendChild(spinner);
@@ -90,7 +90,7 @@
     function hideSpinner() {
       const spinner = document.getElementById("lm-spinner");
       if (spinner) spinner.remove();
-      // Retirer l'overlay seulement si aucune autre interface n'est ouverte
+      // Remove overlay only if no other interface is open
       const hasOtherInterface = document.getElementById("question-dialog") || 
                                  document.getElementById("answer-dialog") ||
                                  document.getElementById("question-confirmation-dialog");
@@ -99,10 +99,10 @@
       }
     }
     
-    // Fonction pour le text-to-speech
+    // Function for text-to-speech
     function speak(text) {
       try {
-        speechSynthesis.cancel(); // Coupe toute lecture en cours
+        speechSynthesis.cancel(); // Stop any ongoing reading
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = "en-US";
         utterance.rate = 1.0;
@@ -114,7 +114,7 @@
       }
     }
     
-    // Fonction pour le speech-to-text
+    // Function for speech-to-text
     function startSpeechRecognition(callback) {
       if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
         alert("Speech recognition is not available in your browser.");
@@ -124,10 +124,10 @@
       
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
-      recognition.lang = "fr-FR"; // Français pour l'input utilisateur
+      recognition.lang = "fr-FR"; // French for user input
       recognition.continuous = false;
       recognition.interimResults = false;
-      // Même configuration pour tous les modes
+      // Same configuration for all modes
       
       recognition.onstart = () => {
         console.log("🎤 Listening...");
@@ -143,7 +143,7 @@
         console.error("❌ Recognition error:", event.error);
         alert("Speech recognition error: " + event.error);
         hideSpinner();
-        // Réinitialiser le flag si on est en mode voice_question
+        // Reset flag if in voice_question mode
         if (window.__accessibleMode === "voice_question") {
           window.__accessibleExtensionRunning = false;
         }
@@ -156,7 +156,7 @@
       recognition.start();
     }
     
-    // Afficher l'interface de choix de méthode
+    // Display the method selection interface
     function showQuestionInterface() {
       return new Promise((resolve) => {
         const questionDiv = document.createElement("div");
@@ -198,7 +198,7 @@
           </div>
         `;
         
-        // Ajouter l'overlay avec flou
+        // Add overlay with blur
         createOverlay();
         
         document.body.appendChild(questionDiv);
@@ -206,7 +206,7 @@
         const input = questionDiv.querySelector("#question-input");
         input.focus();
         
-        // Bouton Envoyer
+        // Send button
         questionDiv.querySelector("#question-text").addEventListener("click", () => {
           const question = input.value.trim();
           if (question) {
@@ -216,7 +216,7 @@
           }
         });
         
-        // Entrée pour envoyer
+        // Enter key to send
         input.addEventListener("keypress", (e) => {
           if (e.key === "Enter" && input.value.trim()) {
             questionDiv.remove();
@@ -225,7 +225,7 @@
           }
         });
         
-        // Bouton Question orale
+        // Voice Question button
         questionDiv.querySelector("#question-voice").addEventListener("click", () => {
           const spinner = showSpinner();
           startSpeechRecognition((transcript) => {
@@ -235,21 +235,21 @@
           });
         });
         
-        // Fermer avec Échap
+        // Close with Escape key
         const handleEscape = (e) => {
           if (e.key === "Escape" && questionDiv.isConnected) {
             questionDiv.remove();
             removeOverlay();
             document.removeEventListener("keydown", handleEscape);
             window.__accessibleExtensionRunning = false;
-            resolve(null); // Résoudre avec null pour indiquer l'annulation
+            resolve(null); // Resolve with null to indicate cancellation
           }
         };
         document.addEventListener("keydown", handleEscape);
       });
     }
 
-    // Fonction pour afficher la question dictée et l'envoyer automatiquement (pour les aveugles)
+    // Function to display the dictated question and send it automatically (for blind users)
     function showQuestionAndAutoSend(question) {
       return new Promise((resolve) => {
         const questionDiv = document.createElement("div");
@@ -285,20 +285,20 @@
           </div>
         `;
         
-        // Ajouter l'overlay avec flou
+        // Add overlay with blur
         createOverlay();
         
         document.body.appendChild(questionDiv);
         
-        // Annoncer l'envoi et envoyer automatiquement après un court délai
+        // Announce sending and automatically send after a short delay
         speak("Sending your question to the AI");
         
-        // Attendre que le message vocal se termine, puis envoyer
+        // Wait for the voice message to finish, then send
         setTimeout(async () => {
-          // Attendre que le message vocal soit terminé (environ 2-3 secondes pour "Sending your question to the AI")
+          // Wait for the voice message to finish (approximately 2-3 seconds for "Sending your question to the AI")
           await new Promise(resolve => setTimeout(resolve, 2500));
           
-          // Retirer l'interface après l'envoi
+          // Remove interface after sending
           questionDiv.remove();
           removeOverlay();
           resolve(question);
@@ -311,7 +311,7 @@
       hideSpinner();
       console.log("✅ " + title + ":\n\n" + answer);
       
-      // Afficher la réponse dans une boîte de dialogue
+      // Display the answer in a dialog box
       const answerDiv = document.createElement("div");
       answerDiv.setAttribute("role", "dialog");
       answerDiv.setAttribute("aria-label", title);
@@ -352,29 +352,29 @@
         </div>
       `;
       
-      // Ajouter l'overlay avec flou
+      // Add overlay with blur
       createOverlay();
       
       document.body.appendChild(answerDiv);
       
-      // Bouton Lire
+      // Read button
       answerDiv.querySelector("#answer-read").addEventListener("click", () => {
         const answerText = answerDiv.querySelector("#answer-content").textContent;
         speak(answerText);
       });
       
-      // Bouton Fermer
+      // Close button
       answerDiv.querySelector("#answer-close").addEventListener("click", () => {
-        speechSynthesis.cancel(); // Arrêter la lecture si elle est en cours
+        speechSynthesis.cancel(); // Stop reading if in progress
         answerDiv.remove();
         removeOverlay();
         window.__accessibleExtensionRunning = false;
       });
       
-      // Fermer avec Échap
+      // Close with Escape key
       const handleEscape = (e) => {
         if (e.key === "Escape" && answerDiv.isConnected) {
-          speechSynthesis.cancel(); // Arrêter la lecture si elle est en cours
+          speechSynthesis.cancel(); // Stop reading if in progress
           answerDiv.remove();
           removeOverlay();
           document.removeEventListener("keydown", handleEscape);
@@ -383,8 +383,8 @@
       };
       document.addEventListener("keydown", handleEscape);
       
-      // Lecture automatique pour les aveugles (mode summarize et voice_question)
-      // Attendre un peu que la boîte soit rendue avant de lire
+      // Automatic reading for blind users (summarize and voice_question modes)
+      // Wait a bit for the box to render before reading
       if (mode === "summarize" || mode === "voice_question") {
         setTimeout(() => {
           const answerText = answerDiv.querySelector("#answer-content").textContent;
@@ -393,16 +393,16 @@
       }
     }
 
-    // Fonction pour traiter avec l'API LanguageModel
+    // Function to process with LanguageModel API
     async function processWithLanguageModel(content, prompt, title = "Answer") {
-      // ⚠️ Langues supportées par la Prompt API (aujourd'hui) :
-      const expectedInputs  = [{ type: "text", languages: ["en"] }]; // pas "fr" ici
-      const expectedOutputs = [{ type: "text", languages: ["en"] }]; // sortie en anglais
+      // ⚠️ Languages supported by Prompt API (today):
+      const expectedInputs  = [{ type: "text", languages: ["en"] }]; // not "fr" here
+      const expectedOutputs = [{ type: "text", languages: ["en"] }]; // output in English
 
-      // Afficher le spinner pendant le traitement
+      // Show spinner during processing
       const spinner = showSpinner();
 
-      // 4) availability() avec LES MÊMES OPTIONS
+      // 4) availability() with THE SAME OPTIONS
       const availability = await LanguageModel.availability({ expectedInputs, expectedOutputs });
       console.log("availability():", availability);
       if (availability === "unavailable") {
@@ -413,7 +413,7 @@
         return;
       }
 
-      // 5) create() avec LES MÊMES OPTIONS + suivi du téléchargement
+      // 5) create() with THE SAME OPTIONS + download tracking
       const session = await LanguageModel.create({
         expectedInputs,
         expectedOutputs,
@@ -436,7 +436,7 @@
       }
     }
 
-    // 1) Détection de l'API
+    // 1) API detection
     if (!('LanguageModel' in self)) {
       console.error("❌ Prompt API not available (Chrome 138+ required, desktop).");
       alert("❌ Prompt API not available (Chrome 138+ required, desktop).");
@@ -444,7 +444,7 @@
       return;
     }
 
-    // 2) Récupération du contenu (priorité à la sélection)
+    // 2) Content retrieval (priority to selection)
     const selected = (window.getSelection && window.getSelection().toString()) || "";
     const pageText = selected.trim() || document.body.innerText || "";
     if (!pageText) {
@@ -457,13 +457,13 @@
     const MAX_CHARS = 60_000;
     const content = pageText.slice(0, MAX_CHARS);
 
-    // 3) Exécution selon le mode
+    // 3) Execution according to mode
     if (mode === "summarize") {
-      // Mode résumé direct pour les aveugles
-      // Annoncer le début de l'analyse
+      // Direct summary mode for blind users
+      // Announce the start of analysis
       speak("Launching Page Analysis");
       
-      // Attendre un peu pour que le message vocal se termine
+      // Wait a bit for the voice message to finish
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       const systemInstr = `
@@ -484,19 +484,19 @@ Provide a clear and structured summary of this page content.
       `.trim();
 
       await processWithLanguageModel(content, promptText, "Page Summary");
-      // Nettoyer le mode après exécution
+      // Clean up mode after execution
       window.__accessibleMode = undefined;
     } else if (mode === "voice_question") {
-      // Mode question orale pour les aveugles
-      // S'assurer qu'aucune lecture vocale n'est en cours avant de commencer
+      // Voice question mode for blind users
+      // Ensure no voice reading is in progress before starting
       speechSynthesis.cancel();
       
-      // Petite pause pour s'assurer que le TTS est complètement arrêté
+      // Brief pause to ensure TTS is completely stopped
       await new Promise(resolve => setTimeout(resolve, 200));
       
       const spinner = showSpinner();
       
-      // Démarrer la reconnaissance vocale (identique à l'interface dys)
+      // Start speech recognition (same as dys interface)
       startSpeechRecognition(async (transcript) => {
         hideSpinner();
         
@@ -507,7 +507,7 @@ Provide a clear and structured summary of this page content.
         
         const question = transcript.trim();
         
-        // Afficher la question dictée et envoyer automatiquement
+        // Display the dictated question and send automatically
         const confirmedQuestion = await showQuestionAndAutoSend(question);
         
         const systemInstr = `
@@ -532,11 +532,11 @@ Answer ONLY using the page content above.
         `.trim();
 
         await processWithLanguageModel(content, promptText, "Answer");
-        // Nettoyer le mode après exécution
+        // Clean up mode after execution
         window.__accessibleMode = undefined;
       });
     } else {
-      // Mode interface de question (pour dyslexiques/TDAH)
+      // Question interface mode (for dyslexic/ADHD users)
       const question = await showQuestionInterface();
       if (!question) { 
         console.log("Operation cancelled."); 
@@ -566,7 +566,7 @@ Answer ONLY using the page content above.
       `.trim();
 
       await processWithLanguageModel(content, promptText, "Réponse");
-      // Nettoyer le mode après exécution
+      // Clean up mode after execution
       window.__accessibleMode = undefined;
     }
   })();
