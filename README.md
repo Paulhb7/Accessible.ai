@@ -2,7 +2,7 @@
 
 ![Accessible AI Preview](https://d112y698adiu2z.cloudfront.net/photos/production/software_thumbnail_photos/003/921/473/datas/medium.png)
 
-**Making the web inclusive and accessible with AI agents**
+**Making the web inclusive and accessible with multimodal GenAI**
 
 A Chrome extension designed to make web content more accessible for people with visual impairments, dyslexia, and ADHD. This extension leverages Chrome's Language Model API to provide intelligent assistance through text-to-speech, speech-to-speech, and AI-powered content analysis.
 
